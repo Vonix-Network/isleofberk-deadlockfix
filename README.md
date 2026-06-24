@@ -1,6 +1,8 @@
 # IsleOfBerk DeadlockFix
 
-A tiny Forge 1.18.2 compatibility mod that fixes a **server-crash chunk-load deadlock** in the [Isle of Berk](https://www.curseforge.com/minecraft/mc-mods/isleofberk) HTTYD dragon mod by Aibreann (GACMD).
+A tiny Forge 1.18.2 compatibility mod that fixes a **server-crash chunk-load deadlock** in the [Isle of Berk](https://www.curseforge.com/minecraft/mc-mods/isleofberk) HTTYD dragon mod by the **GACMD** team (Ghanou Craft, Apprentice Necromancer, TooTHleZZ & Arsian).
+
+> ℹ️ Isle of Berk itself is officially **discontinued** — this patch is for servers still running the final `isleofberk-1.2.0` jar on 1.18.2 modpacks.
 
 ## The Bug
 
