@@ -1,0 +1,21 @@
+# Build output
+build/
+.gradle/
+out/
+run/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.eclipse/
+.classpath
+.project
+.settings/
+
+# Embedded reference / unpacked decompilations (do not redistribute the IoB jar)
+libs/
+*.bak
+build.log

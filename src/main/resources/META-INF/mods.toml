@@ -1,0 +1,36 @@
+modLoader="javafml"
+loaderVersion="[40,)"
+license="MIT"
+issueTrackerURL="https://github.com/Vonix-Network/isleofberk-deadlockfix/issues"
+
+[[mods]]
+modId="isleofberkdeadlockfix"
+version="1.0.0"
+displayName="Isle of Berk Deadlock Fix"
+description='''
+Prevents chunk-generation deadlocks caused by Isle of Berk's ADragonBase.isWaterBelow() being
+called from worldgen-context spawn rules. Short-circuits the cross-chunk read when invoked off
+the main server thread (worldgen worker threads).
+'''
+authors="Vonix-Network / Hermes Agent (Claude Opus 4.7)"
+
+[[dependencies.isleofberkdeadlockfix]]
+modId="forge"
+mandatory=true
+versionRange="[40,)"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.isleofberkdeadlockfix]]
+modId="minecraft"
+mandatory=true
+versionRange="[1.18.2,1.19)"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.isleofberkdeadlockfix]]
+modId="isleofberk"
+mandatory=true
+versionRange="[1.2.0,)"
+ordering="AFTER"
+side="BOTH"
