@@ -2,7 +2,7 @@
 
 A tiny Forge 1.18.2 compatibility mod that fixes a **server-crash chunk-load deadlock** in the [Isle of Berk](https://www.curseforge.com/minecraft/mc-mods/isleofberk) HTTYD dragon mod by the **GACMD** team (Ghanou Craft, Apprentice Necromancer, TooTHleZZ & Arsian).
 
-> ℹ️ Isle of Berk itself is officially **discontinued** — this patch is for servers still running the final `isleofberk-1.2.0` jar on 1.18.2 modpacks.
+> ℹ️ Isle of Berk itself is officially **discontinued** — this patch is for servers still running the final `isleofberk-1.2.0` jar on 1.18.2 modpacks such as [Isle of Berk (Claws of Berk)](https://www.curseforge.com/minecraft/modpacks/new-berks-dawn) by kesselot.
 
 ## The Bug
 
@@ -69,7 +69,7 @@ Requires JDK 17, internet access for ForgeGradle's first build.
 ## Credits
 
 - **Bug discovery + fix authored by** the [Vonix Network](https://vonix.network) team via Hermes Agent (Claude Opus 4.7).
-- Originally deployed on the [Isle of Berk (Claws of Berk)](https://vonix.network) Minecraft server to fix a recurring crash that was triggered every time a player flew into ungenerated terrain on a SpeedStinger spawn cell.
+- Originally deployed on our [Isle of Berk (Claws of Berk)](https://www.curseforge.com/minecraft/modpacks/new-berks-dawn) Minecraft server to fix a recurring crash that was triggered every time a player flew into ungenerated terrain on a SpeedStinger spawn cell.
 
 ## License
 

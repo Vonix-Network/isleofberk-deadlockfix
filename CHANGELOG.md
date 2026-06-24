@@ -13,7 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   misattributed to "Aibreann".
 - README: noted that upstream Isle of Berk is officially discontinued, so users
   understand the scope of this compatibility patch (final `isleofberk-1.2.0`
-  on 1.18.2).
+  on 1.18.2), and linked the canonical *Isle of Berk (Claws of Berk)* modpack
+  by kesselot as the representative deployment target.
+- README: replaced stale `vonix.network` link in the Credits section with the
+  actual *Claws of Berk* CurseForge modpack page.
 
 ## [1.0.0] - 2026-06-24
 
