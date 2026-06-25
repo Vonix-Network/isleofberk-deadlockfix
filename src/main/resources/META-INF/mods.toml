@@ -5,7 +5,7 @@ issueTrackerURL="https://github.com/Vonix-Network/isleofberk-deadlockfix/issues"
 
 [[mods]]
 modId="isleofberkdeadlockfix"
-version="1.0.0"
+version="1.0.1"
 displayName="Isle of Berk Deadlock Fix"
 description='''
 Prevents chunk-generation deadlocks caused by Isle of Berk's ADragonBase.isWaterBelow() being

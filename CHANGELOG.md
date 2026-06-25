@@ -7,7 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-06-25
+
 ### Fixed
+- Added `pack.mcmeta` (pack_format 8, MC 1.18.2) so Forge can register the jar
+  as a valid resource pack. Eliminates the client-side warning screen:
+  *"Mod File: …isleofberk-deadlockfix-1.0.0.jar failed to load a valid
+  ResourcePackInfo"*. Cosmetic only — the mixin fix itself was always loading
+  correctly — but the warning was scaring users on startup.
+
+### Fixed (docs)
 - README: corrected upstream Isle of Berk authorship to the **GACMD** team
   (Ghanou Craft, Apprentice Necromancer, TooTHleZZ & Arsian) — previously
   misattributed to "Aibreann".
@@ -30,5 +39,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   visibility into `isleofberk-1.2.0.jar`.
 - Forge 1.18.2 (40.x+) compatibility, server-side fix (client copy is harmless).
 
-[Unreleased]: https://github.com/Vonix-Network/isleofberk-deadlockfix/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/Vonix-Network/isleofberk-deadlockfix/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/Vonix-Network/isleofberk-deadlockfix/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/Vonix-Network/isleofberk-deadlockfix/releases/tag/v1.0.0
