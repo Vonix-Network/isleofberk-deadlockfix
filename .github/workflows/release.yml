@@ -1,0 +1,74 @@
+name: Build and publish release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Fetch pinned compile-only target jars
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p libs
+          curl --fail --location --retry 3 --output libs/isleofberk-1.2.0.jar \
+            https://cdn.modrinth.com/data/o14djL4t/versions/hULU5MTd/isleofberk-1.2.0.jar
+          curl --fail --location --retry 3 --output libs/geckolib-forge-1.18-3.0.57.jar \
+            https://cdn.modrinth.com/data/8BmcQJ2H/versions/wwh0ZFLu/geckolib-forge-1.18-3.0.57.jar
+          curl --fail --location --retry 3 --output libs/iobvariantloader-2.6.4-all.jar \
+            https://cdn.modrinth.com/data/XepXTAL4/versions/VGQVG1cV/iobvariantloader-2.6.4-all.jar
+          sha512sum libs/isleofberk-1.2.0.jar libs/geckolib-forge-1.18-3.0.57.jar libs/iobvariantloader-2.6.4-all.jar | tee libs/SHA512SUMS
+
+      - name: Build
+        run: ./gradlew clean build --no-daemon
+
+      - name: Validate artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          jars=(build/libs/*.jar)
+          test "${#jars[@]}" -eq 1
+          jar="${jars[0]}"
+          test -s "$jar"
+          unzip -t "$jar" >/dev/null
+          unzip -p "$jar" META-INF/mods.toml | grep -q 'modId="isleofberkdeadlockfix"'
+          unzip -Z1 "$jar" | grep -q 'isleofberkdeadlockfix.mixins.json'
+          unzip -Z1 "$jar" | grep -q 'isleofberkdeadlockfix.variant.mixins.json'
+          unzip -Z1 "$jar" | grep -q 'isleofberkdeadlockfix.refmap.json'
+          unzip -Z1 "$jar" | grep -q 'network/vonix/isleofberkdeadlockfix/mixin/ADragonBaseMixin.class'
+          unzip -Z1 "$jar" | grep -q 'network/vonix/isleofberkdeadlockfix/mixin/AltFollowGoalMixin.class'
+          ! unzip -Z1 "$jar" | grep -E '(^|/)(com/GACMD|nordmods|software/bernie)' >/dev/null
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            tag="${GITHUB_REF_NAME#v}"
+            [[ "$jar" == *"-${tag}.jar" ]]
+            unzip -p "$jar" META-INF/mods.toml | grep -q "version=\"${tag}\""
+          fi
+          sha256sum "$jar" | tee artifact.sha256
+
+      - name: Publish GitHub release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          prerelease: true
+          files: |
+            build/libs/*.jar
+            artifact.sha256
+          generate_release_notes: true

@@ -1,76 +1,89 @@
 # IsleOfBerk DeadlockFix
 
-A tiny Forge 1.18.2 compatibility mod that fixes a **server-crash chunk-load deadlock** in the [Isle of Berk](https://www.curseforge.com/minecraft/mc-mods/isleofberk) HTTYD dragon mod by the **GACMD** team (Ghanou Craft, Apprentice Necromancer, TooTHleZZ & Arsian).
+A Forge 1.18.2 compatibility companion for the discontinued **Isle of Berk 1.2.0** mod by GACMD. It contains two narrowly scoped protections:
 
-> ℹ️ Isle of Berk itself is officially **discontinued** — this patch is for servers still running the final `isleofberk-1.2.0` jar on 1.18.2 modpacks such as [Isle of Berk (Claws of Berk)](https://www.curseforge.com/minecraft/modpacks/new-berks-dawn) by kesselot.
+1. the original `Worker-Main` world-generation deadlock guard; and
+2. an optional IoB Variant Loader 2.6.4 ownerless follow-goal guard.
 
-## The Bug
+This project does not bundle or redistribute Isle of Berk, Variant Loader, or GeckoLib.
 
-`ADragonBase.isWaterBelow()` is invoked from `SpeedStinger.checkSpawnRules` (`m_5610_`) during chunk generation. The method performs a `Level.getBlockState(BlockPos)` read against the entity's full `ServerLevel`.
+## Confirmed failure paths
 
-When this happens on a worldgen worker thread (`Worker-Main-N`) and the target block is in a **neighbouring chunk that has not finished generating**, `ServerChunkCache.getChunk(...).join()` blocks indefinitely:
+### World-generation deadlock
 
+`ADragonBase.isWaterBelow()` can read a neighboring chunk during `SpeedStinger.checkSpawnRules` while running on a Forge world-generation worker. The cross-chunk `ServerChunkCache.getChunk(...).join()` cycle can block workers until the server watchdog terminates the process.
+
+The existing fix returns `false` only when the current thread name begins with `Worker-Main`. This is intentionally narrower than a general all-non-server-thread rule; normal server-thread dragon AI remains unchanged.
+
+### Variant Loader ownerless follow goal
+
+IoB Variant Loader 2.6.4 can tick `AltFollowGoal` after its `ADragonBase` owner is unavailable. The resulting null owner reaches Minecraft look control/navigation and was observed as a `NullPointerException` while ticking an `isleofberk:skrill`.
+
+The optional mixin targets the exact foreign class and runtime descriptors:
+
+- `nordmods.iobvariantloader.util.alt_navigation.AltFollowGoal`
+- `m_8036_()Z` — rejects ownerless activation;
+- `m_8037_()V` — stops navigation and cancels an ownerless tick.
+
+Owner-present behavior is untouched. No fallback target is invented. The Variant Loader configuration is separate and soft-required, so installations without Variant Loader retain the original world-generation fix.
+
+The immediate configuration workaround remains:
+
+```toml
+alternative_land_navigation = false
 ```
-Worker-Main-3  →  needs chunk B  →  chunk B is generating on Worker-Main-7
-Worker-Main-7  →  needs chunk A  →  chunk A is generating on Worker-Main-3
-                                    ↓
-                          DEADLOCK
-                                    ↓
-        net.minecraft.server.MinecraftServer$ServerHangWatchdog fires
-        after 60 s and crashes the server.
-```
 
-Symptom in logs:
-```
-[Server Watchdog/FATAL] [net.minecraft.server.MinecraftServer/]:
-  A single server tick took 60.00 seconds (should be max 0.05)
-```
-…with a stack trace landing in `ServerChunkCache.getChunk` while a `Worker-Main` thread is parked inside `SpeedStinger.checkSpawnRules → ADragonBase.isWaterBelow`.
+## Compatibility and support boundary
 
-## The Fix
-
-`ADragonBaseMixin` `@Inject`s the `HEAD` of `isWaterBelow()`. If the current thread name begins with `Worker-Main`, it short-circuits to `false`. Worldgen spawn checks are the only off-main caller of this method; live AI uses (`DragonSleepGoal`, `AIDragonLand`, etc.) all run on `Server thread` and are unaffected.
-
-`@Pseudo` is used because the target class lives in a separate jar (`isleofberk-1.2.0.jar`) and may not be present at refmap-generation time.
-
-## Compatibility
-
-| | |
+| Component | Scope |
 |---|---|
-| **Minecraft** | 1.18.2 |
-| **Forge** | 40.x+ |
-| **Loader** | Forge (FML) |
-| **Side** | Both (server-side fix; client copy is harmless) |
-| **Required mod** | `isleofberk` ≥ 1.2.0 |
+| Minecraft | 1.18.2 |
+| Loader | Forge 40.x |
+| Required target | Isle of Berk 1.2.x; validated against 1.2.0 |
+| Optional target | IoB Variant Loader 2.6.4 only |
+| Java | 17 |
+| Side | Both; protections are server-oriented |
 
-This mod **only patches IsleOfBerk** — it does not interact with any other mod and is safe to add to any 1.18.2 modpack that includes IsleOfBerk.
+Variant Loader's publisher documentation states Forge **40.3.12+**, while the live Vonix server is Forge 40.3.0. The exact 40.3.0 userdev boot reached full server readiness and both companion transforms applied, but the publisher floor remains a support risk. Do not treat this as a general Variant Loader compatibility guarantee. On Forge 40.3.0, retain `alternative_land_navigation=false` unless the operator accepts that residual risk.
 
-## Installation
+Future Variant Loader builds in the broad `[2.6.4,2.7)` metadata range must not be assumed compatible without bytecode and runtime validation; 2.6.4 is the only validated foreign target.
 
-1. Download `isleofberk-deadlockfix-1.0.0.jar` from the [Releases](../../releases) page.
-2. Drop it into your server's `mods/` folder alongside `isleofberk-1.2.0.jar`.
-3. Restart the server.
+Unrelated `AcquirePoi` and VonixGuardian watchdog paths are intentionally out of scope.
 
-You should see this line during startup:
-```
-[network.vonix.isleofberkdeadlockfix.IsleOfBerkDeadlockFix/]:
-  [IoB-DeadlockFix] Loaded. Mixin will short-circuit ADragonBase.isWaterBelow() during off-main-thread worldgen.
-```
+## Installation and rollback
 
-## Building
+1. Use Forge 1.18.2 with Java 17.
+2. Install Isle of Berk 1.2.0 and this companion in `mods/`.
+3. If using the optional guard, keep IoB Variant Loader 2.6.4 installed.
+4. Back up the existing companion JAR and configuration, then restart safely.
+5. Confirm the startup log and Mixin application lines before testing gameplay.
+
+Rollback: stop the server safely, restore the prior `isleofberk-deadlockfix` JAR (v1.0.1 for the original guard), and restart. If the Variant Loader path is the only concern, set `alternative_land_navigation=false` and restart; this is reversible and does not alter world data.
+
+## Build and validation
+
+The source and artifact must be rebuilt after every final change. Public release is gated on:
+
+- `./gradlew clean build --no-daemon` under Java 17;
+- readable user-facing JAR with `mods.toml`, both mixin configs, refmap, and classes;
+- no embedded upstream packages;
+- production-parity boot with the exact target jars;
+- Mixin apply evidence for both `ADragonBaseMixin` and `AltFollowGoalMixin`;
+- owner-present/ownerless behavior testing where a reproducible fixture is available.
+
+The local validation jars are developer-supplied, gitignored, and never published. The release workflow downloads pinned Modrinth files and records their SHA-512 values before building. Do not place credentials or upstream JARs in Git.
 
 ```bash
-./gradlew build
-# Output: build/libs/isleofberk-deadlockfix-1.0.0.jar
+./gradlew clean build --no-daemon
+# Output: build/libs/isleofberk-deadlockfix-1.1.0.jar
 ```
 
-Requires JDK 17, internet access for ForgeGradle's first build.
+## Release status
 
-## Credits
+`1.1.0` is a candidate release until the final commit, tag, artifact, and remote asset are independently read back. A successful compile or boot alone is not a release claim.
 
-- **Bug discovery + fix authored by** the [Vonix Network](https://vonix.network) team via Hermes Agent (Claude Opus 4.7).
-- Originally deployed on our [Isle of Berk (Claws of Berk)](https://www.curseforge.com/minecraft/modpacks/new-berks-dawn) Minecraft server to fix a recurring crash that was triggered every time a player flew into ungenerated terrain on a SpeedStinger spawn cell.
+## Credits and license
 
-## License
+Bug discovery and companion implementation: Vonix.Network team.
 
 MIT — see [LICENSE](LICENSE).

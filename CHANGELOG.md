@@ -7,38 +7,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-08-04
+
+> Candidate release for Forge 1.18.2. The Variant Loader protection is bytecode
+> and userdev-boot validated against IoB Variant Loader 2.6.4, with the publisher's
+> Forge 40.3.12 minimum retained as an explicit support boundary.
+
+### Added
+
+- Added an optional `AltFollowGoal` ownerless-state guard for IoB Variant Loader 2.6.4.
+- Rejects ownerless goal activation through `m_8036_()Z`.
+- Cancels the ownerless `m_8037_()V` tick after stopping dragon navigation.
+- Preserved the existing `Worker-Main` `ADragonBase.isWaterBelow()` deadlock guard.
+
+### Changed
+
+- Split the optional Variant Loader mixin into its own soft-required configuration.
+- Pinned ForgeGradle and MixinGradle versions for reproducible builds.
+- Added artifact structure, version, and upstream-class exclusion checks to the release workflow.
+- Added pinned third-party validation inputs with SHA-512 verification in CI.
+
+### Compatibility boundary
+
+- Minecraft 1.18.2, Forge 40.x, Java 17.
+- Required: Isle of Berk 1.2.x; validated against 1.2.0.
+- Optional: IoB Variant Loader 2.6.4 only.
+- Variant Loader's publisher documents Forge 40.3.12+; the live Forge 40.3.0
+  combination remains a residual support risk. Use
+  `alternative_land_navigation=false` as the reversible workaround if needed.
+
+### Scope boundary
+
+This release does not address the separate AcquirePoi watchdog or VonixGuardian
+hot-path issues.
+
 ## [1.0.1] - 2026-06-25
 
 ### Fixed
-- Added `pack.mcmeta` (pack_format 8, MC 1.18.2) so Forge can register the jar
-  as a valid resource pack. Eliminates the client-side warning screen:
-  *"Mod File: …isleofberk-deadlockfix-1.0.0.jar failed to load a valid
-  ResourcePackInfo"*. Cosmetic only — the mixin fix itself was always loading
-  correctly — but the warning was scaring users on startup.
 
-### Fixed (docs)
-- README: corrected upstream Isle of Berk authorship to the **GACMD** team
-  (Ghanou Craft, Apprentice Necromancer, TooTHleZZ & Arsian) — previously
-  misattributed to "Aibreann".
-- README: noted that upstream Isle of Berk is officially discontinued, so users
-  understand the scope of this compatibility patch (final `isleofberk-1.2.0`
-  on 1.18.2), and linked the canonical *Isle of Berk (Claws of Berk)* modpack
-  by kesselot as the representative deployment target.
-- README: replaced stale `vonix.network` link in the Credits section with the
-  actual *Claws of Berk* CurseForge modpack page.
+- Added `pack.mcmeta` (pack_format 8, MC 1.18.2) so Forge can register the jar
+  as a valid resource pack.
 
 ## [1.0.0] - 2026-06-24
 
 ### Added
-- Initial release.
-- `ADragonBaseMixin` short-circuits `ADragonBase.isWaterBelow()` to `false`
-  when called from a `Worker-Main*` worldgen thread, eliminating the
-  `ServerChunkCache.getChunk(...).join()` deadlock triggered by
-  `SpeedStinger.checkSpawnRules` during chunk generation.
-- `@Pseudo` mixin target so the mod loads cleanly regardless of refmap
-  visibility into `isleofberk-1.2.0.jar`.
-- Forge 1.18.2 (40.x+) compatibility, server-side fix (client copy is harmless).
 
-[Unreleased]: https://github.com/Vonix-Network/isleofberk-deadlockfix/compare/v1.0.1...HEAD
+- Initial `ADragonBase.isWaterBelow()` `Worker-Main` world-generation deadlock guard.
+- Forge 1.18.2 (40.x+) compatibility.
+
+[Unreleased]: https://github.com/Vonix-Network/isleofberk-deadlockfix/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/Vonix-Network/isleofberk-deadlockfix/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/Vonix-Network/isleofberk-deadlockfix/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/Vonix-Network/isleofberk-deadlockfix/releases/tag/v1.0.0

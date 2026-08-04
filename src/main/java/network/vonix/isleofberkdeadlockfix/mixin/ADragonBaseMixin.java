@@ -17,10 +17,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * B waits for A — and the {@link net.minecraft.server.MinecraftServer$ServerHangWatchdog} fires
  * after 60 s, crashing the server.
  *
- * <p>The fix: when {@code isWaterBelow()} is called from anything other than the main server
- * thread, short-circuit to {@code false}. Worldgen spawn checks are the only off-main caller
- * of this method; the normal AI uses (DragonSleepGoal, AIDragonLand, etc.) run on the main
- * server tick thread and are unaffected.
+ * <p>The fix targets the confirmed Forge worldgen worker signature
+ * (threads named "Worker-Main-N"). Normal AI runs on the main server tick thread
+ * and is intentionally unaffected.
  *
  * <p>{@link Pseudo @Pseudo} is required because the target class is in a separate mod jar
  * (isleofberk-1.2.0.jar) and may not always be present at refmap-generation time.

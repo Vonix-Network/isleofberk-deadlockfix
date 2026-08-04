@@ -1,0 +1,15 @@
+{
+  "required": false,
+  "minVersion": "0.8",
+  "package": "network.vonix.isleofberkdeadlockfix.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "refmap": "isleofberkdeadlockfix.refmap.json",
+  "mixins": [
+    "AltFollowGoalMixin"
+  ],
+  "server": [],
+  "client": [],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

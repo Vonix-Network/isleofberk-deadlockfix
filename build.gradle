@@ -1,12 +1,14 @@
 plugins {
     id 'eclipse'
     id 'idea'
-    id 'maven-publish'
-    id 'net.minecraftforge.gradle' version '5.1.+'
-    id 'org.spongepowered.mixin' version '0.7.+'
+    id 'net.minecraftforge.gradle' version '5.1.77'
+    id 'org.spongepowered.mixin' version '0.7.38'
 }
 
-version = '1.0.1'
+def forgeVersion = project.findProperty('forgeVersion') ?: '40.3.0'
+def includeVariantLoader = project.findProperty('includeVariantLoader')?.toBoolean() ?: true
+
+version = project.findProperty('version') ?: '1.1.0'
 group = 'network.vonix.isleofberkdeadlockfix'
 archivesBaseName = 'isleofberk-deadlockfix'
 
@@ -38,6 +40,7 @@ minecraft {
 mixin {
     add sourceSets.main, 'isleofberkdeadlockfix.refmap.json'
     config 'isleofberkdeadlockfix.mixins.json'
+    config 'isleofberkdeadlockfix.variant.mixins.json'
 }
 
 repositories {
@@ -46,13 +49,38 @@ repositories {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.18.2-40.3.0'
-    // Reference the Isle of Berk jar so mixin can resolve the target class
-    compileOnly fileTree(dir: 'libs', include: ['isleofberk-1.2.0.jar'])
+    minecraft "net.minecraftforge:forge:1.18.2-${forgeVersion}"
+
+    // These upstream jars are developer-supplied compile-only references and
+    // are never embedded in the published companion artifact.
+    compileOnly fileTree(dir: 'libs', include: [
+            'isleofberk-1.2.0.jar',
+            'iobvariantloader-2.6.4-all.jar',
+            'geckolib-forge-1.18-3.0.57.jar'
+    ])
+
+    // Local userdev boot dependencies. ForgeGradle's deobf wrapper is required
+    // because the downloaded files are production-obfuscated Forge jars.
+    runtimeOnly fg.deobf('local:isleofberk-1.2.0:1.2.0')
+    runtimeOnly fg.deobf('local:geckolib-forge-1.18-3.0.57:3.0.57')
+    // Optional target runtime reference; set includeVariantLoader=false for IoB-only boot checks.
+    if (includeVariantLoader) {
+        runtimeOnly fg.deobf('local:iobvariantloader-2.6.4-all:2.6.4')
+    }
+
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 }
 
+processResources {
+    def replaceProperties = [version: project.version]
+    inputs.properties replaceProperties
+    filesMatching('META-INF/mods.toml') {
+        expand replaceProperties
+    }
+}
+
 jar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     manifest {
         attributes([
             "Specification-Title"     : "isleofberk-deadlockfix",
@@ -61,7 +89,7 @@ jar {
             "Implementation-Title"    : project.name,
             "Implementation-Version"  : project.version,
             "Implementation-Vendor"   : "Vonix-Network",
-            "MixinConfigs"            : "isleofberkdeadlockfix.mixins.json"
+            "MixinConfigs"            : "isleofberkdeadlockfix.mixins.json,isleofberkdeadlockfix.variant.mixins.json"
         ])
     }
 }
