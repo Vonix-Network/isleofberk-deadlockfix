@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.2] - 2026-08-22
+
+### Added
+- Added an optional ownerless-follow guard for IoB Variant Loader 2.7.0.
+- Rejects ownerless follow-goal activation and stops its navigation before the
+  invalid tick can reach Minecraft look control or navigation.
+
+### Changed
+- Preserved the existing `Worker-Main` world-generation deadlock guard and
+  owner-present follow-goal behavior.
+- Updated the validated build lane to Forge 1.18.2-40.3.12 and Isle of Berk
+  Variant Loader 2.7.0.
+- The Variant Loader dependency remains optional; Isle of Berk 1.2.x is still
+  required.
+
 ## [1.0.1] - 2026-06-25
 
 ### Fixed
@@ -39,6 +54,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   visibility into `isleofberk-1.2.0.jar`.
 - Forge 1.18.2 (40.x+) compatibility, server-side fix (client copy is harmless).
 
-[Unreleased]: https://github.com/Vonix-Network/isleofberk-deadlockfix/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/Vonix-Network/isleofberk-deadlockfix/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/Vonix-Network/isleofberk-deadlockfix/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/Vonix-Network/isleofberk-deadlockfix/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/Vonix-Network/isleofberk-deadlockfix/releases/tag/v1.0.0

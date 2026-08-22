@@ -33,6 +33,10 @@ Symptom in logs:
 
 `@Pseudo` is used because the target class lives in a separate jar (`isleofberk-1.2.0.jar`) and may not be present at refmap-generation time.
 
+When IoB Variant Loader 2.7.0 is installed, the optional `AltFollowGoalMixin`
+also rejects ownerless follow-goal activation and cancels an ownerless tick
+before it reaches Minecraft navigation. Owner-present behavior is unchanged.
+
 ## Compatibility
 
 | | |
@@ -42,26 +46,28 @@ Symptom in logs:
 | **Loader** | Forge (FML) |
 | **Side** | Both (server-side fix; client copy is harmless) |
 | **Required mod** | `isleofberk` ≥ 1.2.0 |
+| **Optional mod** | IoB Variant Loader 2.7.0 |
 
-This mod **only patches IsleOfBerk** — it does not interact with any other mod and is safe to add to any 1.18.2 modpack that includes IsleOfBerk.
+This companion only targets Isle of Berk and its optional Variant Loader follow-goal integration; it does not bundle or replace either upstream mod and is safe to add to a 1.18.2 modpack that includes Isle of Berk.
 
 ## Installation
 
-1. Download `isleofberk-deadlockfix-1.0.0.jar` from the [Releases](../../releases) page.
+1. Download `isleofberk-deadlockfix-1.0.2.jar` from the [Releases](../../releases) page.
 2. Drop it into your server's `mods/` folder alongside `isleofberk-1.2.0.jar`.
-3. Restart the server.
+3. If using IoB Variant Loader 2.7.0, keep it installed alongside the companion.
+4. Restart the server.
 
 You should see this line during startup:
 ```
 [network.vonix.isleofberkdeadlockfix.IsleOfBerkDeadlockFix/]:
-  [IoB-DeadlockFix] Loaded. Mixin will short-circuit ADragonBase.isWaterBelow() during off-main-thread worldgen.
+  [IoB-DeadlockFix] Core worldgen guard loaded; Variant Loader 2.7.0 ownerless-follow guard is optional.
 ```
 
 ## Building
 
 ```bash
 ./gradlew build
-# Output: build/libs/isleofberk-deadlockfix-1.0.0.jar
+# Output: build/libs/isleofberk-deadlockfix-1.0.2.jar
 ```
 
 Requires JDK 17, internet access for ForgeGradle's first build.

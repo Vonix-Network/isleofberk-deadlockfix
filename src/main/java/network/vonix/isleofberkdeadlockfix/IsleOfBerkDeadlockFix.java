@@ -9,6 +9,6 @@ public class IsleOfBerkDeadlockFix {
     public static final Logger LOGGER = LogUtils.getLogger();
 
     public IsleOfBerkDeadlockFix() {
-        LOGGER.info("[IoB-DeadlockFix] Loaded. Mixin will short-circuit ADragonBase.isWaterBelow() during off-main-thread worldgen.");
+        LOGGER.info("[IoB-DeadlockFix] Core worldgen guard loaded; Variant Loader 2.7.0 ownerless-follow guard is optional.");
     }
 }

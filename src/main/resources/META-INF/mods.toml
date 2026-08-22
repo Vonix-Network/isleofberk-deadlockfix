@@ -5,14 +5,14 @@ issueTrackerURL="https://github.com/Vonix-Network/isleofberk-deadlockfix/issues"
 
 [[mods]]
 modId="isleofberkdeadlockfix"
-version="1.0.1"
+version="${version}"
 displayName="Isle of Berk Deadlock Fix"
 description='''
 Prevents chunk-generation deadlocks caused by Isle of Berk's ADragonBase.isWaterBelow() being
-called from worldgen-context spawn rules. Short-circuits the cross-chunk read when invoked off
-the main server thread (worldgen worker threads).
+called from worldgen-context spawn rules. When Variant Loader 2.7.0 is present, it also guards
+the alternative follow goal when its dragon owner is unavailable.
 '''
-authors="Vonix-Network / Hermes Agent (Claude Opus 4.7)"
+authors="Vonix-Network"
 
 [[dependencies.isleofberkdeadlockfix]]
 modId="forge"
@@ -31,6 +31,13 @@ side="BOTH"
 [[dependencies.isleofberkdeadlockfix]]
 modId="isleofberk"
 mandatory=true
-versionRange="[1.2.0,)"
+versionRange="[1.2.0,1.3)"
+ordering="AFTER"
+side="BOTH"
+
+[[dependencies.isleofberkdeadlockfix]]
+modId="iobvariantloader"
+mandatory=false
+versionRange="[2.7.0,2.8)"
 ordering="AFTER"
 side="BOTH"
