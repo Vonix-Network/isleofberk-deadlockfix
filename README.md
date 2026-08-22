@@ -45,7 +45,7 @@ before it reaches Minecraft navigation. Owner-present behavior is unchanged.
 | **Forge** | 40.x+ |
 | **Loader** | Forge (FML) |
 | **Side** | Both (server-side fix; client copy is harmless) |
-| **Required mod** | `isleofberk` ≥ 1.2.0 |
+| **Required mod** | Isle of Berk 1.2.x (validated with `isleofberk-1.2.0.jar`) |
 | **Optional mod** | IoB Variant Loader 2.7.0 |
 
 This companion only targets Isle of Berk and its optional Variant Loader follow-goal integration; it does not bundle or replace either upstream mod and is safe to add to a 1.18.2 modpack that includes Isle of Berk.
