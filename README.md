@@ -1,41 +1,42 @@
 # IsleOfBerk DeadlockFix
 
-A tiny Forge 1.18.2 compatibility mod that fixes a **server-crash chunk-load deadlock** in the [Isle of Berk](https://www.curseforge.com/minecraft/mc-mods/isleofberk) HTTYD dragon mod by the **GACMD** team (Ghanou Craft, Apprentice Necromancer, TooTHleZZ & Arsian).
+A tiny Forge 1.18.2 compatibility companion for the [Isle of Berk](https://www.curseforge.com/minecraft/mc-mods/isleofberk) HTTYD dragon mod by the **GACMD** team (Ghanou Craft, Apprentice Necromancer, TooTHleZZ & Arsian).
 
 > ℹ️ Isle of Berk itself is officially **discontinued** — this patch is for servers still running the final `isleofberk-1.2.0` jar on 1.18.2 modpacks such as [Isle of Berk (Claws of Berk)](https://www.curseforge.com/minecraft/modpacks/new-berks-dawn) by kesselot.
 
-## The Bug
+This companion does not bundle or replace Isle of Berk or IoB Variant Loader. Keep the original `isleofberk-1.2.0.jar` installed, and keep IoB Variant Loader 2.7.0 installed if you use that optional integration.
 
-`ADragonBase.isWaterBelow()` is invoked from `SpeedStinger.checkSpawnRules` (`m_5610_`) during chunk generation. The method performs a `Level.getBlockState(BlockPos)` read against the entity's full `ServerLevel`.
+`1.0.3` is a patch-level correction on the already released `1.0.2` Variant Loader 2.7.0 lane. It is not the separate GitHub prerelease `v1.1.0`, which targets Variant Loader 2.6.4 on `main`.
 
-When this happens on a worldgen worker thread (`Worker-Main-N`) and the target block is in a **neighbouring chunk that has not finished generating**, `ServerChunkCache.getChunk(...).join()` blocks indefinitely:
+## Evidence boundary (2026-08-29)
 
-```
-Worker-Main-3  →  needs chunk B  →  chunk B is generating on Worker-Main-7
-Worker-Main-7  →  needs chunk A  →  chunk A is generating on Worker-Main-3
-                                    ↓
-                          DEADLOCK
-                                    ↓
-        net.minecraft.server.MinecraftServer$ServerHangWatchdog fires
-        after 60 s and crashes the server.
-```
+Two production events from 2026-08-29 are **separate**. Do not collapse them into one cause or one fix.
 
-Symptom in logs:
-```
-[Server Watchdog/FATAL] [net.minecraft.server.MinecraftServer/]:
-  A single server tick took 60.00 seconds (should be max 0.05)
-```
-…with a stack trace landing in `ServerChunkCache.getChunk` while a `Worker-Main` thread is parked inside `SpeedStinger.checkSpawnRules → ADragonBase.isWaterBelow`.
+### Confirmed: 12:40:03 Variant Loader 2.7.0 `AltFollowGoal` owner-null NPE
 
-## The Fix
+When IoB Variant Loader 2.7.0 is installed, `AltFollowGoal` can remain active after the dragon owner is unavailable. The ownerless tick reaches Minecraft look control / navigation and was observed as a `NullPointerException`.
 
-`ADragonBaseMixin` `@Inject`s the `HEAD` of `isWaterBelow()`. If the current thread name begins with `Worker-Main`, it short-circuits to `false`. Worldgen spawn checks are the only off-main caller of this method; live AI uses (`DragonSleepGoal`, `AIDragonLand`, etc.) all run on `Server thread` and are unaffected.
+`1.0.3` keeps the optional `AltFollowGoalMixin` guard from the accepted `1.0.2` candidate and corrects Mixin remapping for the production `m_8036_()` / `m_8037_()` selectors so those Goal members resolve through the refmap:
+
+- ownerless `canUse` (`m_8036_()Z`) returns `false`;
+- an ownerless tick (`m_8037_()V`) stops navigation and cancels before look control / navigation receive a null owner;
+- owner-present behavior is unchanged.
+
+No in-world owner-loss reproduction was performed for this companion. Runtime evidence for the accepted candidate covers mixin application and boot readiness only. This release does not claim a quantitative performance improvement.
+
+### Separate and unresolved: 12:41:06 ServerHangWatchdog
+
+A later `ServerHangWatchdog` event at **12:41:06** is a different report. The supplied watchdog dump has **no captured Server thread, Worker-Main, IoB, AI, chunk, or navigation causal stack**, so the hang cause remains **unresolved**.
+
+`1.0.3` does **not** claim a fix for that 12:41:06 watchdog event.
+
+## Retained historical worldgen guard
+
+`ADragonBaseMixin` `@Inject`s the `HEAD` of `ADragonBase.isWaterBelow()`. If the current thread name begins with `Worker-Main`, it short-circuits to `false`.
+
+That mixin is **retained historical / compatibility behavior** from the original 1.0.0 worldgen-spawn path (`SpeedStinger.checkSpawnRules` calling `isWaterBelow()` during chunk generation). It is **not** a proven fix for the supplied 12:41:06 watchdog report.
 
 `@Pseudo` is used because the target class lives in a separate jar (`isleofberk-1.2.0.jar`) and may not be present at refmap-generation time.
-
-When IoB Variant Loader 2.7.0 is installed, the optional `AltFollowGoalMixin`
-also rejects ownerless follow-goal activation and cancels an ownerless tick
-before it reaches Minecraft navigation. Owner-present behavior is unchanged.
 
 ## Compatibility
 
@@ -52,9 +53,9 @@ This companion only targets Isle of Berk and its optional Variant Loader follow-
 
 ## Installation
 
-1. Download `isleofberk-deadlockfix-1.0.2.jar` from the [Releases](../../releases) page.
-2. Drop it into your server's `mods/` folder alongside `isleofberk-1.2.0.jar`.
-3. If using IoB Variant Loader 2.7.0, keep it installed alongside the companion.
+1. Download `isleofberk-deadlockfix-1.0.3.jar` from the [Releases](../../releases) page.
+2. Drop it into your server's `mods/` folder alongside the original `isleofberk-1.2.0.jar`.
+3. If using IoB Variant Loader 2.7.0, keep the original Variant Loader jar installed alongside this companion.
 4. Restart the server.
 
 You should see this line during startup:
@@ -67,7 +68,7 @@ You should see this line during startup:
 
 ```bash
 ./gradlew build
-# Output: build/libs/isleofberk-deadlockfix-1.0.2.jar
+# Output: build/libs/isleofberk-deadlockfix-1.0.3.jar
 ```
 
 Requires JDK 17, internet access for ForgeGradle's first build.
@@ -75,7 +76,7 @@ Requires JDK 17, internet access for ForgeGradle's first build.
 ## Credits
 
 - **Bug discovery + fix authored by** the [Vonix Network](https://vonix.network) team via Hermes Agent (Claude Opus 4.7).
-- Originally deployed on our [Isle of Berk (Claws of Berk)](https://www.curseforge.com/minecraft/modpacks/new-berks-dawn) Minecraft server to fix a recurring crash that was triggered every time a player flew into ungenerated terrain on a SpeedStinger spawn cell.
+- Originally deployed on our [Isle of Berk (Claws of Berk)](https://www.curseforge.com/minecraft/modpacks/new-berks-dawn) Minecraft server to address a recurring worldgen-path crash on SpeedStinger spawn cells. That historical deployment is not evidence that the separate 12:41:06 watchdog is resolved.
 
 ## License
 
