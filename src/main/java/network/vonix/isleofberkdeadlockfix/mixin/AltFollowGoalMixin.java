@@ -16,12 +16,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class AltFollowGoalMixin {
     @Shadow(remap = false) private ADragonBase tamable;
 
-    @Inject(method = "m_8036_()Z", at = @At("HEAD"), cancellable = true, require = 1, remap = false)
+    @Inject(method = "m_8036_()Z", at = @At("HEAD"), cancellable = true, require = 1, remap = true)
     private void vonix$rejectOwnerlessUse(CallbackInfoReturnable<Boolean> cir) {
         if (owner() == null) cir.setReturnValue(false);
     }
 
-    @Inject(method = "m_8037_()V", at = @At("HEAD"), cancellable = true, require = 1, remap = false)
+    @Inject(method = "m_8037_()V", at = @At("HEAD"), cancellable = true, require = 1, remap = true)
     private void vonix$skipOwnerlessTick(CallbackInfo ci) {
         if (owner() == null) {
             if (tamable != null) tamable.getNavigation().stop();

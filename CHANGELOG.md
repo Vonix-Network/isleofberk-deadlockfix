@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Variant Loader 2.7.0.
 - The Variant Loader dependency remains optional; Isle of Berk 1.2.x is still
   required.
+- Mixin remapping stays enabled for the `AltFollowGoal` `m_8036_`/`m_8037_`
+  selectors so production Goal members are resolved through the refmap.
 
 ## [1.0.1] - 2026-06-25
 
