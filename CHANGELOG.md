@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.4] - 2026-09-01
+
+### Fixed
+- Added an optional `@Pseudo` Simply Swords 1.40 `WildfireEffect` guard. The
+  upstream effect casts `LivingEntity.getLastHurtByMob()` to `Player` without a
+  type check; dragon combat can make that value a non-player `LivingEntity`,
+  producing a confirmed `ClassCastException` on a Light Fury / Dragon Hunter
+  tick. The guard cancels only when the attacker is not a player, preserving the
+  existing player-triggered effect path.
+
+### Evidence boundary
+- This candidate addresses the confirmed 2026-08-28 Simply Swords crash family.
+  It does not claim to repair silent external kills, database stalls, or entity
+  persistence after an abrupt process termination.
+
 ## [1.0.3] - 2026-08-29
 
 Patch on the 1.0.x Variant Loader 2.7.0 maintenance line. This is not the
@@ -93,7 +108,8 @@ This prerelease does not supersede the 1.0.x Variant Loader 2.7.0 maintenance li
   visibility into `isleofberk-1.2.0.jar`.
 - Forge 1.18.2 (40.x+) compatibility, server-side fix (client copy is harmless).
 
-[Unreleased]: https://github.com/Vonix-Network/isleofberk-deadlockfix/compare/v1.0.3...HEAD
+[Unreleased]: https://github.com/Vonix-Network/isleofberk-deadlockfix/compare/v1.0.4...HEAD
+[1.0.4]: https://github.com/Vonix-Network/isleofberk-deadlockfix/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/Vonix-Network/isleofberk-deadlockfix/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/Vonix-Network/isleofberk-deadlockfix/compare/v1.0.1...v1.0.2
 [1.1.0]: https://github.com/Vonix-Network/isleofberk-deadlockfix/compare/v1.0.1...v1.1.0

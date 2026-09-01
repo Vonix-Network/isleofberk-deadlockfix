@@ -5,7 +5,8 @@
   "compatibilityLevel": "JAVA_17",
   "refmap": "isleofberkdeadlockfix.refmap.json",
   "mixins": [
-    "ADragonBaseMixin"
+    "ADragonBaseMixin",
+    "WildfireEffectMixin"
   ],
   "server": [],
   "client": [],
