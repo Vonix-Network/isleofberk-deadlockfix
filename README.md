@@ -22,13 +22,13 @@ When IoB Variant Loader 2.7.0 is installed, `AltFollowGoal` can remain active af
 - an ownerless tick (`m_8037_()V`) stops navigation and cancels before look control / navigation receive a null owner;
 - owner-present behavior is unchanged.
 
-No in-world owner-loss reproduction was performed for this companion. Runtime evidence for the accepted candidate covers mixin application and boot readiness only. This release does not claim a quantitative performance improvement.
+No in-world owner-loss reproduction was performed for this companion. The accepted `1.0.3` runtime evidence covers mixin application and boot readiness; the `1.0.4` hardening candidate additionally passed packaged dedicated-server smoke gates with and without Variant Loader. Neither is a quantitative performance benchmark.
 
 ### Separate and unresolved: 12:41:06 ServerHangWatchdog
 
 A later `ServerHangWatchdog` event at **12:41:06** is a different report. The supplied watchdog dump has **no captured Server thread, Worker-Main, IoB, AI, chunk, or navigation causal stack**, so the hang cause remains **unresolved**.
 
-`1.0.3` does **not** claim a fix for that 12:41:06 watchdog event.
+`1.0.4` does **not** claim a fix for that 12:41:06 watchdog event.
 
 ## Retained historical worldgen guard
 
