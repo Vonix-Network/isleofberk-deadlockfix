@@ -10,15 +10,16 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * Fix for chunk-generation deadlock caused by ADragonBase.isWaterBelow().
+ * Defensive off-main-thread guard for {@code ADragonBase.isWaterBelow()}.
  *
- * <p>{@code SpeedStinger.checkSpawnRules} (m_5610_) calls {@code isWaterBelow()} which performs
- * a {@code Level.getBlockState(BlockPos)} read using the entity's full {@link net.minecraft.server.level.ServerLevel}.
- * During chunk generation (ChunkStatus.SPAWN), spawn-rule checks run on worldgen worker threads
- * (named "Worker-Main-N"). If the block read targets a neighbor chunk that has not finished
- * generating, {@code ServerChunkCache.getChunk(...).join()} blocks indefinitely — A waits for B,
- * B waits for A — and the {@link net.minecraft.server.MinecraftServer$ServerHangWatchdog} fires
- * after 60 s, crashing the server.
+ * <p>IoB's normal AI path may call {@code isWaterBelow()} from
+ * {@code SpeedStinger.getWalkTargetValue(BlockPos, LevelReader)} ({@code m_5610_}).
+ * The separate spawn predicates {@code ADragonBase.checkAnimalSpawnRules(...)} and
+ * {@code SpeedStinger.checkSpeedStingerSpawnRules(...)} do not call this helper; during
+ * chunk-generation spawn evaluation they receive a bounded {@code WorldGenRegion} rather
+ * than the blocking {@code ServerChunkCache} path. If this helper is nevertheless reached
+ * off the server thread with a full {@code ServerLevel}, a direct {@code getBlockState}
+ * lookup can enter {@code ServerChunkCache.getChunk(...).join()} and wait on the server thread.
  *
  * <p>The fix: when either block-probing method is called from an off-main server thread,
  * short-circuit to {@code false}. The check uses the actual {@link MinecraftServer} running
