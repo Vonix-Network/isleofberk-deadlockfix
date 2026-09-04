@@ -1,5 +1,8 @@
 package network.vonix.isleofberkdeadlockfix.mixin;
 
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Pseudo;
 import org.spongepowered.asm.mixin.injection.At;
@@ -17,10 +20,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * B waits for A — and the {@link net.minecraft.server.MinecraftServer$ServerHangWatchdog} fires
  * after 60 s, crashing the server.
  *
- * <p>The fix: when {@code isWaterBelow()} is called from anything other than the main server
- * thread, short-circuit to {@code false}. Worldgen spawn checks are the only off-main caller
- * of this method; the normal AI uses (DragonSleepGoal, AIDragonLand, etc.) run on the main
- * server tick thread and are unaffected.
+ * <p>The fix: when either block-probing method is called from an off-main server thread,
+ * short-circuit to {@code false}. The check uses the actual {@link MinecraftServer} running
+ * thread rather than a worker-name heuristic. Normal AI calls on the server tick thread and
+ * client-side calls are unaffected.
  *
  * <p>{@link Pseudo @Pseudo} is required because the target class is in a separate mod jar
  * (isleofberk-1.2.0.jar) and may not always be present at refmap-generation time.
@@ -31,12 +34,31 @@ public abstract class ADragonBaseMixin {
 
     @Inject(method = "isWaterBelow", at = @At("HEAD"), cancellable = true, remap = false)
     private void vonix$shortCircuitDuringWorldgen(CallbackInfoReturnable<Boolean> cir) {
-        String tn = Thread.currentThread().getName();
-        // Worldgen worker threads: "Worker-Main-N" (chunk gen pool).
-        // Server tick thread: "Server thread".
-        // Only short-circuit when off the main thread to avoid altering live AI behaviour.
-        if (tn != null && tn.startsWith("Worker-Main")) {
+        if (vonix$isOffServerThread()) {
             cir.setReturnValue(false);
         }
+    }
+
+    @Inject(method = "isOnJumpHeight", at = @At("HEAD"), cancellable = true, remap = false)
+    private void vonix$shortCircuitJumpHeightOffThread(CallbackInfoReturnable<Boolean> cir) {
+        if (vonix$isOffServerThread()) {
+            cir.setReturnValue(false);
+        }
+    }
+
+    private boolean vonix$isOffServerThread() {
+        Entity entity = (Entity) (Object) this;
+        if (!(entity.level instanceof ServerLevel serverLevel)) {
+            return false;
+        }
+
+        MinecraftServer server = serverLevel.getServer();
+        if (server == null) {
+            return false;
+        }
+
+        Thread serverThread = server.getRunningThread();
+        Thread currentThread = Thread.currentThread();
+        return serverThread != null && currentThread != serverThread;
     }
 }

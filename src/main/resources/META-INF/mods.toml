@@ -8,7 +8,7 @@ modId="isleofberkdeadlockfix"
 version="${version}"
 displayName="Isle of Berk Deadlock Fix"
 description='''
-Prevents chunk-generation deadlocks caused by Isle of Berk's ADragonBase.isWaterBelow() being
+Prevents chunk-generation deadlocks caused by Isle of Berk's ADragonBase block probes being
 called from worldgen-context spawn rules. When Variant Loader 2.7.0 is present, it also guards
 the alternative follow goal when its dragon owner is unavailable.
 '''

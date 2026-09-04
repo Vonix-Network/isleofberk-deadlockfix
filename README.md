@@ -6,7 +6,7 @@ A tiny Forge 1.18.2 compatibility companion for the [Isle of Berk](https://www.c
 
 This companion does not bundle or replace Isle of Berk or IoB Variant Loader. Keep the original `isleofberk-1.2.0.jar` installed, and keep IoB Variant Loader 2.7.0 installed if you use that optional integration.
 
-`1.0.3` is a patch-level correction on the already released `1.0.2` Variant Loader 2.7.0 lane. It is not the separate GitHub prerelease `v1.1.0`, which targets Variant Loader 2.6.4 on `main`.
+`1.0.4` is a narrow hardening release on the already published `1.0.3` Variant Loader 2.7.0 lane. It is not the separate GitHub prerelease `v1.1.0`, which targets Variant Loader 2.6.4 on `main`.
 
 ## Evidence boundary (2026-08-29)
 
@@ -32,9 +32,18 @@ A later `ServerHangWatchdog` event at **12:41:06** is a different report. The su
 
 ## Retained historical worldgen guard
 
-`ADragonBaseMixin` `@Inject`s the `HEAD` of `ADragonBase.isWaterBelow()`. If the current thread name begins with `Worker-Main`, it short-circuits to `false`.
+`ADragonBaseMixin` `@Inject`s the `HEAD` of `ADragonBase.isWaterBelow()` and
+`ADragonBase.isOnJumpHeight()`. If the call is made from an off-main server
+thread, it short-circuits to `false` using the exact `MinecraftServer` running
+thread identity. The normal server tick thread and client behavior are
+preserved.
 
-That mixin is **retained historical / compatibility behavior** from the original 1.0.0 worldgen-spawn path (`SpeedStinger.checkSpawnRules` calling `isWaterBelow()` during chunk generation). It is **not** a proven fix for the supplied 12:41:06 watchdog report.
+The `isWaterBelow()` protection is **retained historical / compatibility
+behavior** from the original 1.0.0 worldgen-spawn path
+(`SpeedStinger.checkSpawnRules` calling `isWaterBelow()` during chunk
+generation). The `isOnJumpHeight()` protection is preventative sibling
+hardening; it is not a newly confirmed deadlock. This release is **not** a
+proven fix for the supplied 12:41:06 watchdog report.
 
 `@Pseudo` is used because the target class lives in a separate jar (`isleofberk-1.2.0.jar`) and may not be present at refmap-generation time.
 
@@ -53,7 +62,7 @@ This companion only targets Isle of Berk and its optional Variant Loader follow-
 
 ## Installation
 
-1. Download `isleofberk-deadlockfix-1.0.3.jar` from the [Releases](../../releases) page.
+1. Download `isleofberk-deadlockfix-1.0.4.jar` from the [Releases](../../releases) page.
 2. Drop it into your server's `mods/` folder alongside the original `isleofberk-1.2.0.jar`.
 3. If using IoB Variant Loader 2.7.0, keep the original Variant Loader jar installed alongside this companion.
 4. Restart the server.
@@ -68,7 +77,7 @@ You should see this line during startup:
 
 ```bash
 ./gradlew build
-# Output: build/libs/isleofberk-deadlockfix-1.0.3.jar
+# Output: build/libs/isleofberk-deadlockfix-1.0.4.jar
 ```
 
 Requires JDK 17, internet access for ForgeGradle's first build.

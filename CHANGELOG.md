@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.4] - 2026-09-04
+
+### Fixed
+- Replaced the retained `Worker-Main` thread-name heuristic with an exact
+  server-thread identity check before allowing `ADragonBase` block probes to
+  run. This preserves normal server-tick and client behavior while covering
+  off-main server executors without adding scans, blocking calls, or state.
+- Added the same off-main hardening boundary to `ADragonBase.isOnJumpHeight()`.
+  This is preventative sibling hardening; no separate production deadlock is
+  claimed for that method.
+
+### Changed
+- Kept the Variant Loader 2.7.0 ownerless-follow guards unchanged.
+- Removed the superseded Simply Swords/WildfireEffect work from this IoB-only
+  release line. That fix remains the separate
+  `simplyswords-wildfire-fix-0.1.0` companion.
+
+### Evidence boundary
+- No additional Isle of Berk deadlock has been confirmed beyond the retained
+  `isWaterBelow()` worldgen path.
+- This release does not claim a quantitative performance improvement. The
+  companion remains a narrow early-return guard with no loops, allocations,
+  chunk loads, synchronization, timers, or logging.
+
 ## [1.0.3] - 2026-08-29
 
 Patch on the 1.0.x Variant Loader 2.7.0 maintenance line. This is not the
@@ -93,7 +117,8 @@ This prerelease does not supersede the 1.0.x Variant Loader 2.7.0 maintenance li
   visibility into `isleofberk-1.2.0.jar`.
 - Forge 1.18.2 (40.x+) compatibility, server-side fix (client copy is harmless).
 
-[Unreleased]: https://github.com/Vonix-Network/isleofberk-deadlockfix/compare/v1.0.3...HEAD
+[Unreleased]: https://github.com/Vonix-Network/isleofberk-deadlockfix/compare/v1.0.4...HEAD
+[1.0.4]: https://github.com/Vonix-Network/isleofberk-deadlockfix/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/Vonix-Network/isleofberk-deadlockfix/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/Vonix-Network/isleofberk-deadlockfix/compare/v1.0.1...v1.0.2
 [1.1.0]: https://github.com/Vonix-Network/isleofberk-deadlockfix/compare/v1.0.1...v1.1.0
