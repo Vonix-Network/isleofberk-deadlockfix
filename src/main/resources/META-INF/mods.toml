@@ -9,9 +9,8 @@ version="${version}"
 displayName="Isle of Berk Deadlock Fix"
 description='''
 Prevents Isle of Berk chunk-generation deadlocks caused by ADragonBase.isWaterBelow() being
-called from worldgen-context spawn rules. When Isle of Berk Variant Loader 2.6.4 is present,
-it also prevents its alternative follow goal from ticking a dragon after its owner is unavailable.
-The Variant Loader target is optional and is loaded through a separate soft-required mixin configuration.
+called from worldgen-context spawn rules. This regular artifact targets Isle of Berk only;
+the optional Variant Loader adapter is built separately and is not included here.
 '''
 authors="Vonix-Network"
 
@@ -33,12 +32,5 @@ side="BOTH"
 modId="isleofberk"
 mandatory=true
 versionRange="[1.2.0,1.3)"
-ordering="AFTER"
-side="BOTH"
-
-[[dependencies.isleofberkdeadlockfix]]
-modId="iobvariantloader"
-mandatory=false
-versionRange="[2.6.4,2.7)"
 ordering="AFTER"
 side="BOTH"

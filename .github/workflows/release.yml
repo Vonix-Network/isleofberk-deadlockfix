@@ -24,7 +24,6 @@ jobs:
           cache: gradle
 
       - name: Fetch pinned compile-only target jars
-        if: startsWith(github.ref, 'refs/tags/')
         shell: bash
         run: |
           set -euo pipefail
@@ -33,9 +32,12 @@ jobs:
             https://cdn.modrinth.com/data/o14djL4t/versions/hULU5MTd/isleofberk-1.2.0.jar
           curl --fail --location --retry 3 --output libs/geckolib-forge-1.18-3.0.57.jar \
             https://cdn.modrinth.com/data/8BmcQJ2H/versions/wwh0ZFLu/geckolib-forge-1.18-3.0.57.jar
-          curl --fail --location --retry 3 --output libs/iobvariantloader-2.6.4-all.jar \
-            https://cdn.modrinth.com/data/XepXTAL4/versions/VGQVG1cV/iobvariantloader-2.6.4-all.jar
-          sha512sum libs/isleofberk-1.2.0.jar libs/geckolib-forge-1.18-3.0.57.jar libs/iobvariantloader-2.6.4-all.jar | tee libs/SHA512SUMS
+
+          cat > /tmp/iob-sha512sums <<'EOF'
+          54e381796806264db009ace6dbe7a3d220bea54c301d131392b0ef723a4601cc33149e86d246782fc99c8cda6b1c242760df83eb52fff7eca01217fc4ad2463e  libs/isleofberk-1.2.0.jar
+          4780298cdd2d5551ef8cf4d5b4ff20744f0c2ba9ae0ff45e1030fb5c91b351e650fd8550798396203f0c95944eeda695c93a07748895637c6b6710ea5419350c  libs/geckolib-forge-1.18-3.0.57.jar
+          EOF
+          sha512sum -c /tmp/iob-sha512sums
 
       - name: Build
         run: ./gradlew clean build --no-daemon
@@ -44,18 +46,26 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          jars=(build/libs/*.jar)
+          jars=(build/libs/isleofberk-deadlockfix-*.jar)
           test "${#jars[@]}" -eq 1
           jar="${jars[0]}"
           test -s "$jar"
           unzip -t "$jar" >/dev/null
           unzip -p "$jar" META-INF/mods.toml | grep -q 'modId="isleofberkdeadlockfix"'
-          unzip -Z1 "$jar" | grep -q 'isleofberkdeadlockfix.mixins.json'
-          unzip -Z1 "$jar" | grep -q 'isleofberkdeadlockfix.variant.mixins.json'
+          unzip -Z1 "$jar" | grep -q '^isleofberkdeadlockfix.mixins.json$'
           unzip -Z1 "$jar" | grep -q 'isleofberkdeadlockfix.refmap.json'
           unzip -Z1 "$jar" | grep -q 'network/vonix/isleofberkdeadlockfix/mixin/ADragonBaseMixin.class'
-          unzip -Z1 "$jar" | grep -q 'network/vonix/isleofberkdeadlockfix/mixin/AltFollowGoalMixin.class'
+          ! unzip -Z1 "$jar" | grep -q 'isleofberkdeadlockfix.variant.mixins.json'
+          ! unzip -Z1 "$jar" | grep -q 'network/vonix/isleofberkdeadlockfix/mixin/AltFollowGoalMixin.class'
           ! unzip -Z1 "$jar" | grep -E '(^|/)(com/GACMD|nordmods|software/bernie)' >/dev/null
+          manifest_configs="$(unzip -p "$jar" META-INF/MANIFEST.MF | tr -d '\r' | awk '
+            /^MixinConfigs:/ { sub(/^MixinConfigs:[[:space:]]*/, ""); value=$0; next }
+            /^[[:space:]]/ { sub(/^[[:space:]]+/, ""); value=value $0; next }
+            { if (value != "") { print value; value="" } }
+            END { if (value != "") print value }
+          ')"
+          manifest_configs="${manifest_configs// /}"
+          grep -Fqx 'isleofberkdeadlockfix.mixins.json' <<<"$manifest_configs"
           if [[ "$GITHUB_REF" == refs/tags/* ]]; then
             tag="${GITHUB_REF_NAME#v}"
             [[ "$jar" == *"-${tag}.jar" ]]

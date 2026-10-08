@@ -9,7 +9,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 /**
  * Fix for chunk-generation deadlock caused by ADragonBase.isWaterBelow().
  *
- * <p>{@code SpeedStinger.checkSpawnRules} (m_5610_) calls {@code isWaterBelow()} which performs
+ * <p>{@code SpeedStinger.getWalkTargetValue} (official 1.18.2 name; intermediary
+ * descriptor {@code m_5610_(BlockPos, LevelReader)F}) calls {@code isWaterBelow()} which performs
  * a {@code Level.getBlockState(BlockPos)} read using the entity's full {@link net.minecraft.server.level.ServerLevel}.
  * During chunk generation (ChunkStatus.SPAWN), spawn-rule checks run on worldgen worker threads
  * (named "Worker-Main-N"). If the block read targets a neighbor chunk that has not finished

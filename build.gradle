@@ -6,7 +6,7 @@ plugins {
 }
 
 def forgeVersion = project.findProperty('forgeVersion') ?: '40.3.0'
-def includeVariantLoader = project.findProperty('includeVariantLoader')?.toBoolean() ?: true
+def includeVariantLoader = project.findProperty('includeVariantLoader')?.toBoolean() ?: false
 
 version = project.findProperty('version') ?: '1.1.0'
 group = 'network.vonix.isleofberkdeadlockfix'
@@ -40,7 +40,19 @@ minecraft {
 mixin {
     add sourceSets.main, 'isleofberkdeadlockfix.refmap.json'
     config 'isleofberkdeadlockfix.mixins.json'
-    config 'isleofberkdeadlockfix.variant.mixins.json'
+    if (includeVariantLoader) {
+        config 'isleofberkdeadlockfix.variant.mixins.json'
+    }
+}
+
+sourceSets {
+    main {
+        java {
+            if (!includeVariantLoader) {
+                exclude 'network/vonix/isleofberkdeadlockfix/mixin/AltFollowGoalMixin.java'
+            }
+        }
+    }
 }
 
 repositories {
@@ -75,7 +87,27 @@ processResources {
     def replaceProperties = [version: project.version]
     inputs.properties replaceProperties
     filesMatching('META-INF/mods.toml') {
-        expand replaceProperties
+        expand replaceProperties + [includeVariantLoader: includeVariantLoader]
+    }
+    if (!includeVariantLoader) {
+        exclude 'isleofberkdeadlockfix.variant.mixins.json'
+    }
+    doLast {
+        fileTree(destinationDir).matching { include 'META-INF/mods.toml' }.each { resource ->
+            def content = resource.getText('UTF-8')
+            if (includeVariantLoader) {
+                content += '''
+
+[[dependencies.isleofberkdeadlockfix]]
+modId="iobvariantloader"
+mandatory=false
+versionRange="[2.6.4,2.6.5)"
+ordering="AFTER"
+side="BOTH"
+'''
+            }
+            resource.setText(content, 'UTF-8')
+        }
     }
 }
 
@@ -89,7 +121,9 @@ jar {
             "Implementation-Title"    : project.name,
             "Implementation-Version"  : project.version,
             "Implementation-Vendor"   : "Vonix-Network",
-            "MixinConfigs"            : "isleofberkdeadlockfix.mixins.json,isleofberkdeadlockfix.variant.mixins.json"
+            "MixinConfigs"            : includeVariantLoader
+                    ? "isleofberkdeadlockfix.mixins.json,isleofberkdeadlockfix.variant.mixins.json"
+                    : "isleofberkdeadlockfix.mixins.json"
         ])
     }
 }

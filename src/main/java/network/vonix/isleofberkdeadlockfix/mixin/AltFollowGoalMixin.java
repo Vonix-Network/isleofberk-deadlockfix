@@ -2,6 +2,7 @@ package network.vonix.isleofberkdeadlockfix.mixin;
 
 import com.GACMD.isleofberk.entity.base.dragon.ADragonBase;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Pseudo;
 import org.spongepowered.asm.mixin.Shadow;
@@ -22,11 +23,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Pseudo
 @Mixin(targets = "nordmods.iobvariantloader.util.alt_navigation.AltFollowGoal", remap = false)
 public abstract class AltFollowGoalMixin {
-    /** Field confirmed from the public 2.6.4 target artifact. */
+    /** Dragon field confirmed from the public 2.6.4 target artifact. */
     @Shadow(remap = false)
     private ADragonBase tamable;
 
-    @Inject(method = "m_8036_()Z", at = @At("HEAD"), cancellable = true,
+    /** Navigation captured by the target goal at construction time. */
+    @Shadow(remap = false)
+    private PathNavigation navigation;
+
+    @Inject(method = {"m_8036_()Z", "canUse()Z"}, at = @At("HEAD"), cancellable = true,
             require = 1, remap = false)
     private void vonix$rejectOwnerlessUse(CallbackInfoReturnable<Boolean> cir) {
         if (owner() == null) {
@@ -38,12 +43,12 @@ public abstract class AltFollowGoalMixin {
         return tamable == null ? null : tamable.getOwner();
     }
 
-    @Inject(method = "m_8037_()V", at = @At("HEAD"), cancellable = true,
+    @Inject(method = {"m_8037_()V", "tick()V"}, at = @At("HEAD"), cancellable = true,
             require = 1, remap = false)
     private void vonix$skipOwnerlessTick(CallbackInfo ci) {
         if (owner() == null) {
-            if (tamable != null) {
-                tamable.getNavigation().stop();
+            if (navigation != null) {
+                navigation.stop();
             }
             ci.cancel();
         }
