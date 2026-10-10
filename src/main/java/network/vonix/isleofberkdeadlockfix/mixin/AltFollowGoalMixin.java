@@ -12,8 +12,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * Prevents the validated IoB Variant Loader 2.6.4 alternative follow goal from
- * passing a missing owner to Minecraft look control or navigation.
+ * Prevents the IoB Variant Loader alternative follow goal from passing a missing
+ * owner to Minecraft look control or navigation.
+ *
+ * <p>Verified against the live 2.7.0 artifact (`iobvariantloader-2.7.0-all.jar`,
+ * Modrinth sha512 4c3255…): the target class declares {@code tamable : ADragonBase}
+ * and {@code navigation : PathNavigation}, exposes {@code m_8036_()Z} (canUse) and
+ * {@code m_8037_()V} (tick), and its tick path reaches {@code LookControl.setLookAt}
+ * with an unguarded owner lookup — the null-owner NPE in the crash report.</p>
  *
  * <p>The target goal's ownerless state is a state/lifecycle failure, not a
  * thread failure. A missing owner means the follow goal has no valid work to do;
@@ -23,7 +29,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Pseudo
 @Mixin(targets = "nordmods.iobvariantloader.util.alt_navigation.AltFollowGoal", remap = false)
 public abstract class AltFollowGoalMixin {
-    /** Dragon field confirmed from the public 2.6.4 target artifact. */
+    /** Dragon field verified present on the live 2.7.0 target artifact. */
     @Shadow(remap = false)
     private ADragonBase tamable;
 

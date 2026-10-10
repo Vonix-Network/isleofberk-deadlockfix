@@ -6,9 +6,8 @@ plugins {
 }
 
 def forgeVersion = project.findProperty('forgeVersion') ?: '40.3.0'
-def includeVariantLoader = project.findProperty('includeVariantLoader')?.toBoolean() ?: false
 
-version = project.findProperty('version') ?: '1.1.0'
+version = project.findProperty('version') ?: '1.2.0'
 group = 'network.vonix.isleofberkdeadlockfix'
 archivesBaseName = 'isleofberk-deadlockfix'
 
@@ -40,19 +39,7 @@ minecraft {
 mixin {
     add sourceSets.main, 'isleofberkdeadlockfix.refmap.json'
     config 'isleofberkdeadlockfix.mixins.json'
-    if (includeVariantLoader) {
-        config 'isleofberkdeadlockfix.variant.mixins.json'
-    }
-}
-
-sourceSets {
-    main {
-        java {
-            if (!includeVariantLoader) {
-                exclude 'network/vonix/isleofberkdeadlockfix/mixin/AltFollowGoalMixin.java'
-            }
-        }
-    }
+    config 'isleofberkdeadlockfix.variant.mixins.json'
 }
 
 repositories {
@@ -67,7 +54,7 @@ dependencies {
     // are never embedded in the published companion artifact.
     compileOnly fileTree(dir: 'libs', include: [
             'isleofberk-1.2.0.jar',
-            'iobvariantloader-2.6.4-all.jar',
+            'iobvariantloader-2.7.0-all.jar',
             'geckolib-forge-1.18-3.0.57.jar'
     ])
 
@@ -75,10 +62,8 @@ dependencies {
     // because the downloaded files are production-obfuscated Forge jars.
     runtimeOnly fg.deobf('local:isleofberk-1.2.0:1.2.0')
     runtimeOnly fg.deobf('local:geckolib-forge-1.18-3.0.57:3.0.57')
-    // Optional target runtime reference; set includeVariantLoader=false for IoB-only boot checks.
-    if (includeVariantLoader) {
-        runtimeOnly fg.deobf('local:iobvariantloader-2.6.4-all:2.6.4')
-    }
+    // Optional Variant Loader runtime reference for the packaged-runtime gate.
+    runtimeOnly fg.deobf('local:iobvariantloader-2.7.0-all:2.7.0')
 
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 }
@@ -87,25 +72,20 @@ processResources {
     def replaceProperties = [version: project.version]
     inputs.properties replaceProperties
     filesMatching('META-INF/mods.toml') {
-        expand replaceProperties + [includeVariantLoader: includeVariantLoader]
-    }
-    if (!includeVariantLoader) {
-        exclude 'isleofberkdeadlockfix.variant.mixins.json'
+        expand replaceProperties
     }
     doLast {
         fileTree(destinationDir).matching { include 'META-INF/mods.toml' }.each { resource ->
             def content = resource.getText('UTF-8')
-            if (includeVariantLoader) {
-                content += '''
+            content += '''
 
 [[dependencies.isleofberkdeadlockfix]]
 modId="iobvariantloader"
 mandatory=false
-versionRange="[2.6.4,2.6.5)"
+versionRange="[2.6.4,)"
 ordering="AFTER"
 side="BOTH"
 '''
-            }
             resource.setText(content, 'UTF-8')
         }
     }
@@ -121,9 +101,7 @@ jar {
             "Implementation-Title"    : project.name,
             "Implementation-Version"  : project.version,
             "Implementation-Vendor"   : "Vonix-Network",
-            "MixinConfigs"            : includeVariantLoader
-                    ? "isleofberkdeadlockfix.mixins.json,isleofberkdeadlockfix.variant.mixins.json"
-                    : "isleofberkdeadlockfix.mixins.json"
+            "MixinConfigs"            : "isleofberkdeadlockfix.mixins.json,isleofberkdeadlockfix.variant.mixins.json"
         ])
     }
 }

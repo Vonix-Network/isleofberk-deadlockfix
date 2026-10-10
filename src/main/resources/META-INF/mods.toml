@@ -6,11 +6,15 @@ issueTrackerURL="https://github.com/Vonix-Network/isleofberk-deadlockfix/issues"
 [[mods]]
 modId="isleofberkdeadlockfix"
 version="${version}"
-displayName="Isle of Berk Deadlock Fix"
+displayName="IOB Deadlock Fixes"
 description='''
-Prevents Isle of Berk chunk-generation deadlocks caused by ADragonBase.isWaterBelow() being
-called from worldgen-context spawn rules. This regular artifact targets Isle of Berk only;
-the optional Variant Loader adapter is built separately and is not included here.
+Prevents two Isle of Berk server crashes:
+
+1. A chunk-generation deadlock from ADragonBase.isWaterBelow() being called from
+   worldgen-context spawn rules (ServerHangWatchdog, "a single server tick took 60.00 seconds").
+2. A NullPointerException while ticking a tamed dragon whose owner is not resolvable
+   (LookControl.setLookAt(null)), caused by IoB Variant Loader's AltFollowGoal. The
+   Variant Loader guard is optional and inactive when IoB Variant Loader is not installed.
 '''
 authors="Vonix-Network"
 

@@ -1,6 +1,7 @@
 package network.vonix.isleofberkdeadlockfix;
 
 import com.mojang.logging.LogUtils;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
 import org.slf4j.Logger;
 
@@ -9,6 +10,12 @@ public class IsleOfBerkDeadlockFix {
     public static final Logger LOGGER = LogUtils.getLogger();
 
     public IsleOfBerkDeadlockFix() {
-        LOGGER.info("[IoB-DeadlockFix] Regular Isle of Berk core guard registered; this artifact does not include the Variant Loader adapter.");
+        boolean variantLoader = ModList.get().isLoaded("iobvariantloader");
+        LOGGER.info("[IoB-DeadlockFix] Isle of Berk core guard registered (ADragonBase.isWaterBelow worldgen deadlock).");
+        if (variantLoader) {
+            LOGGER.info("[IoB-DeadlockFix] IoB Variant Loader detected; ownerless AltFollowGoal guard active (null-owner LookControl/ navigation crash).");
+        } else {
+            LOGGER.info("[IoB-DeadlockFix] IoB Variant Loader not detected; optional AltFollowGoal guard inactive.");
+        }
     }
 }

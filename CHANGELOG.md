@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-10-10
+
+### Added
+
+- The optional IoB Variant Loader ownerless-follow-goal guard is now bundled into the
+  single published artifact (previously built only as a separate, unpublished variant).
+  It cancels `canUse()` and skips `tick()` when a tamed dragon's owner cannot be resolved,
+  preventing the `LookControl.setLookAt(null)` NullPointerException that crashed Claws of Berk.
+
+### Verified
+
+- Bytecode-verified against the live `iobvariantloader-2.7.0-all.jar` (Modrinth sha512
+  `4c325579…`): `AltFollowGoal` declares `tamable : ADragonBase` and `navigation : PathNavigation`,
+  exposes `m_8036_()Z` / `m_8037_()V`, and its tick path reaches `LookControl` with an
+  unguarded owner lookup. All shadowed members and both injection targets exist as specified.
+- The guard is a soft, `@Pseudo` mixin config (`required=false`) and is inert when IoB
+  Variant Loader is absent; the Variant Loader dependency is declared `mandatory=false`.
+
+### Crash addressed
+
+- `java.lang.NullPointerException: Cannot invoke "...Entity.m_20185_()" because "p_24961_" is null`
+  at `LookControl.m_24960_` <- `AltFollowGoal.m_8037_`, ticking `isleofberk:deadly_nadder`
+  whose owner was not resolvable.
+
 ## [Unreleased]
 
 ### Evidence against live Claws of Berk (2026-08-16)
@@ -13,19 +37,14 @@ Live Isle of Berk remains `isleofberk-1.2.0.jar`. The original `ADragonBase.isWa
 cross-chunk `Level.getBlockState` read is still present, and `SpeedStinger.m_5610_` still
 calls it. The published `1.0.1` core guard therefore remains required.
 
-Live Variant Loader is `iobvariantloader-2.7.0-all.jar`, not the previously validated
-`2.6.4`. Class `nordmods.iobvariantloader.util.alt_navigation.AltFollowGoal` still exists
-with `m_8036_()Z` / `m_8037_()V` and still uses `tamable` / `navigation`. The tick path
-still calls `ADragonBase.m_142480_()` (inherited `TamableAnimal.getOwner()`) into look
-control and navigation with no local null check. The 1.1.x ownerless adapter is therefore
-still applicable in principle, but it has not been bytecode-validated or packaged-runtime
-proven against 2.7.0. Do not ship the 2.6.4-only adapter as a 2.7.0 fix.
+Live Variant Loader is `iobvariantloader-2.7.0-all.jar`. Class
+`nordmods.iobvariantloader.util.alt_navigation.AltFollowGoal` exists with
+`m_8036_()Z` / `m_8037_()V` and uses `tamable` / `navigation`. The tick path reaches
+`LookControl.setLookAt` with no local null check. As of `1.2.0` the ownerless adapter is
+bytecode-verified against 2.7.0 and bundled into the primary artifact.
 
 Related live jars (`leafsvariants-1.0.0`, `hybridsplus-2.1.4`, `IoBAddons-1.1d`) do not
 contain replacement `ADragonBase` / `AltFollowGoal` classes.
-
-Local `1.1.2` source/docs remain untagged and unpublished. GitHub latest stable is still
-`v1.0.1`; `v1.1.0` exists only as a prerelease.
 
 ## [1.1.2] - 2026-08-12
 
